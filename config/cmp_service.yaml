@@ -1,6 +1,6 @@
 # rpc
 rpc:
-  port: ":18535"
+  port: ":8535"
 
 # 日志配置
 logger_jsonFile: "config/log.json"
@@ -13,5 +13,5 @@ mysql:
   #连接复用时间 1min=60000000000 10mins
   conn_max_life_time: 600000000000
   #链接
-  source_name: root:mysql2022@tcp(127.0.0.1:13306)/cmp_chain?parseTime=true&charset=utf8&loc=Local
+  source_name: root:mysql2022@tcp(13.213.61.14:13306)/cmp_chain?parseTime=true&charset=utf8&loc=Local
 
