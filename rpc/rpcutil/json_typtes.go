@@ -22,13 +22,13 @@ func (j *jsonError) Error(code int64, errMsg, errData string) *jsonError {
 // jsonRequest is jsonCodec response data struct
 // and implement the inerface named 'rpc.Request'
 type jsonRequest struct {
-	ID      string                   `json:"id"`
+	ID      int                      `json:"id"`
 	Mthd    string                   `json:"method"`
 	Args    []filters.FilterCriteria `json:"params"`
 	Version string                   `json:"jsonrpc"`
 }
 
-func (j *jsonRequest) Ident() string  { return j.ID }
+func (j *jsonRequest) Ident() int     { return j.ID }
 func (j *jsonRequest) Method() string { return j.Mthd }
 func (j *jsonRequest) Params() []byte {
 	byts, err := json.Marshal(j.Args)
@@ -41,14 +41,14 @@ func (j *jsonRequest) Params() []byte {
 // jsonResponse is jsonCodec response data struct
 // and implement the inerface named 'rpc.Response'
 type jsonResponse struct {
-	ID      string      `json:"id"`
+	ID      int         `json:"id"`
 	Version string      `json:"jsonrpc"`
 	Err     *jsonError  `json:"error,omitempty"`
 	Result  interface{} `json:"result,omitempty"`
 }
 
-func (j *jsonResponse) SetReqIdent(ident string) { j.ID = ident }
-func (j *jsonResponse) Error() *jsonError        { return j.Err }
+func (j *jsonResponse) SetReqIdent(ident int) { j.ID = ident }
+func (j *jsonResponse) Error() *jsonError     { return j.Err }
 func (j *jsonResponse) Reply() []byte {
 	byts, err := json.Marshal(j)
 	if err != nil {

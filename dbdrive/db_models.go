@@ -16,7 +16,7 @@ type Logs struct {
 	TxIndex     string   `json:"transactionIndex" description:"index of the transaction in the block"`
 	BlockHash   string   `json:"blockHash" description:"hash of the block in which the transaction was included"`
 	LogIndex    string   `json:"logIndex" description:"index of the log in the block"`
-	Removed     string   `json:"removed" description:"The Removed field is true if this log was reverted due to a chain reorganisation"`
+	Removed     bool     `json:"removed" description:"The Removed field is true if this log was reverted due to a chain reorganisation"`
 }
 
 type BlockBloom struct {

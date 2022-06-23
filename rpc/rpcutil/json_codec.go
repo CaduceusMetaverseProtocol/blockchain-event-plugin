@@ -68,7 +68,7 @@ func (j *jsonCodec) NewResponse(reply interface{}, err *jsonError) *jsonResponse
 	return response
 }
 
-func (j *jsonCodec) NewRequest(id, method string, argv []filters.FilterCriteria) *jsonRequest {
+func (j *jsonCodec) NewRequest(id int, method string, argv []filters.FilterCriteria) *jsonRequest {
 	req := &jsonRequest{
 		ID:      id,
 		Mthd:    method,
