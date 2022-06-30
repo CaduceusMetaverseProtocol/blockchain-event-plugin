@@ -1,6 +1,6 @@
 # rpc
 rpc:
-  port: ":18535"
+  port: "18535"
 
 
 mysql:
