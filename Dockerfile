@@ -11,6 +11,9 @@ FROM alpine
 
 ENV service=/go/src/blockchain-event-plugin
 COPY --from=0  $service/main /usr/bin
+COPY --from=0  $service/config/conf.yaml  /data/config/
+COPY --from=0  $service/config/log.json  /data/config/
+
 WORKDIR /data
 
 CMD ["main"]
