@@ -5,7 +5,7 @@
     "color": true
   },
   "File": {
-    "filename": "logs/blockchain-event-plugin.log",
+    "filename": "blockchain-event-plugin.log",
     "level": "DEBG",
     "daily": true,
     "maxlines": 1000000,

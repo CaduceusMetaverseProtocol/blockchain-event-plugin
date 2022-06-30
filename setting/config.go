@@ -31,7 +31,7 @@ func GetBool(params string) bool {
 // Config viper解析配置文件
 func Config() error {
 	viper.AddConfigPath("./config")
-	viper.SetConfigName("cmp_service")
+	viper.SetConfigName("conf")
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}

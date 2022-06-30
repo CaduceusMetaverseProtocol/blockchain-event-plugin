@@ -1,9 +1,7 @@
 # rpc
 rpc:
-  port: ":8535"
+  port: ":18535"
 
-# 日志配置
-logger_jsonFile: "config/log.json"
 
 mysql:
   #打开数据库的最大连接数

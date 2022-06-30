@@ -3,7 +3,7 @@ package main
 import (
 	"blockchain-event-plugin/logger"
 	"blockchain-event-plugin/rpc/rpcserver"
-	"blockchain-event-plugin/setting"
+	"github.com/spf13/viper"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// 加载日志配置
-	logger.SetLogger(setting.GetString("logger_jsonFile"))
+	logger.SetLogger("config/log.json")
 	Run()
 }
 
@@ -23,7 +23,13 @@ func Run() {
 	signal.Notify(make(chan os.Signal), syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	// 服务开启
-	go rpcserver.StartRPC(setting.GetString("rpc.port"))
+	rpcPort := viper.GetString("rpc.port")
+
+	if rpcPort == "" {
+		rpcPort = os.Getenv("RPC_PORT")
+		logger.Info("Command line get RPC_PORT:", rpcPort)
+	}
+	go rpcserver.StartRPC(":" + rpcPort)
 
 	logger.Info("[sys] CMP service start successful: ", "time", time.Now().UTC())
 

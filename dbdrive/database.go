@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	_ "github.com/go-sql-driver/mysql"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -14,6 +15,11 @@ import (
 var err error
 var DB *sql.DB
 var once sync.Once
+
+const (
+	MaxOpenConns = 150
+	MaxIdleConns = 100
+)
 
 func init() {
 	once.Do(func() {
@@ -24,15 +30,19 @@ func init() {
 		}()
 
 		//开启MySQL的链接
-		//DB, err = sql.Open("mysql", MysqlSourceName)
-		DB, err = sql.Open("mysql", setting.GetString("mysql.source_name"))
+		mysqlSourceName := setting.GetString("mysql.source_name")
+		if mysqlSourceName == "" {
+			mysqlSourceName = os.Getenv("MysqlSourceName")
+			logger.Info("Command line get MysqlSourceName:", mysqlSourceName)
+		}
+		DB, err = sql.Open("mysql", mysqlSourceName)
 		if nil != err {
 			panic(err)
 		}
 
-		DB.SetMaxOpenConns(setting.GetInt("mysql.max_open_conn"))
-		DB.SetMaxIdleConns(setting.GetInt("mysql.max_idle_conn"))
-		DB.SetConnMaxLifetime(time.Duration(setting.GetInt("mysql.conn_max_life_time")))
+		DB.SetMaxOpenConns(MaxOpenConns)
+		DB.SetMaxIdleConns(MaxIdleConns)
+		DB.SetConnMaxLifetime(time.Minute * 10)
 
 		err = DB.Ping()
 		if nil != err {
