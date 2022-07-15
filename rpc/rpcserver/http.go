@@ -104,7 +104,19 @@ func (i *PublicRPCAPI) SyncBlockAndLogs(crit filters.FilterCriteria, reply *inte
 
 	var raw json.RawMessage
 	for i := fromBlockInt; i <= toBlockInt; i++ {
-		err := rpcclient.Call(&raw, "eth_getBlockByNumber", hexutil.EncodeBig(big.NewInt(i)), false)
+		//先查库 没有再存
+		bloom, err := dbdrive.GetBloomByBlockNumber(i)
+		if err != nil {
+			logger.Error("SyncBlockAndLogs GetBloomByBlockNumber before save block_bloom error.", "args:", crit, "err:", err)
+			types.SystemError.Data = err.Error()
+			*reply = types.Responses("000000", types.SystemError, nil)
+			return nil
+		}
+		if len(bloom) > 0 {
+			continue
+		}
+		//链上获取block相关信息
+		err = rpcclient.Call(&raw, "eth_getBlockByNumber", hexutil.EncodeBig(big.NewInt(i)), false)
 		if err != nil {
 			logger.Error("SyncBlockAndLogs rpcclient.Call error.", "args:", crit, "err:", err)
 			types.SystemError.Data = err.Error()
@@ -140,8 +152,20 @@ func (i *PublicRPCAPI) SyncBlockAndLogs(crit filters.FilterCriteria, reply *inte
 		return nil
 	}
 
-	//save logs
-	dbdrive.SaveLogs(ethlogs)
+	//将查到的ethlogs遍历对比，如果库中没有 存储logs
+	for j := 0; j < len(ethlogs); j++ {
+		logs, err := dbdrive.GetLogByTxhashAndLogIndex(ethlogs[j])
+		if err != nil {
+			logger.Error("SyncBlockAndLogs GetLogByTxhashAndLogIndex before save logs error.", "args:", crit, "err:", err)
+			types.SystemError.Data = err.Error()
+			*reply = types.Responses("000000", types.SystemError, nil)
+			return nil
+		}
+		if logs == nil {
+			//save logs
+			dbdrive.SaveLogs(ethlogs)
+		}
+	}
 
 	*reply = "Sync successful!"
 	logger.Info("Sync successful!", "fromBlock:", crit.FromBlock, "; toBlock:", crit.ToBlock)

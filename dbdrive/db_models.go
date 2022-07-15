@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -96,6 +97,47 @@ func GetLogsByBlockNumber(blockNumber int64) (logs []Logs, err error) {
 	var rows *sql.Rows
 	sql := "SELECT address,topics,`data`,block_number,tx_hash,tx_index,block_hash,log_index,removed FROM logs WHERE block_number = ? "
 	rows, err = DB.Query(sql, blockNumber)
+
+	defer rows.Close()
+	if err != nil {
+		panic(err)
+	}
+	var log Logs
+	// 数据处理
+	for rows.Next() {
+		var topic string
+		var blockNumber int
+		var address string
+		rows.Scan(&address, &topic, &log.Data, &blockNumber, &log.TxHash, &log.TxIndex, &log.BlockHash, &log.LogIndex, &log.Removed)
+		//处理address大小写
+		log.Address = strings.ToLower(address)
+		//处理Topics
+		log.Topics = strings.Split(topic, ",")
+		//处理block_number
+		log.BlockNumber = toHex(blockNumber)
+		logs = append(logs, log)
+	}
+
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+
+	return logs, nil
+}
+
+// GetLogByTxhashAndLogIndex
+func GetLogByTxhashAndLogIndex(ethLog ethtypes.Log) (logs []Logs, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("GetLogs mysql error: ", r)
+		}
+	}()
+
+	fmt.Println("ethLog.TxHash, ethLog.Index:", ethLog.TxHash, ethLog.Index)
+	var rows *sql.Rows
+	sql := "SELECT address,topics,`data`,block_number,tx_hash,tx_index,block_hash,log_index,removed FROM logs WHERE tx_hash = ? and log_index = ? "
+	logIndex := "0x" + strconv.Itoa(int(ethLog.Index))
+	rows, err = DB.Query(sql, ethLog.TxHash.String(), logIndex)
 
 	defer rows.Close()
 	if err != nil {
@@ -220,7 +262,7 @@ func SaveBloom(blockeHeight int64, blockHash, bloom string) {
 	}
 }
 
-// id生成器
+// --------------------id生成器-------------------------
 var (
 	machineID     int64 // 机器 id 占10位, 十进制范围是 [ 0, 1023 ]
 	sn            int64 // 序列号占 12 位,十进制范围是 [ 0, 4095 ]
@@ -258,3 +300,5 @@ func getSnowflakeIdProcess() int64 {
 	id := rightBinValue | machineID | sn
 	return id
 }
+
+// --------------------id生成器 end -------------------------
